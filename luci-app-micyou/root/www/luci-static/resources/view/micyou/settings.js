@@ -31,7 +31,7 @@ var MIC_ACTIONS = [
 // 自定义电脑按键的可选键（Windows VK 码，与 fork 的协议一致）
 var VK_CHOICES = [
 	[ '', '无' ], [ '162', '左Ctrl' ], [ '163', '右Ctrl' ], [ '164', '左Alt' ], [ '165', '右Alt' ],
-	[ '91', '左Win' ], [ '92', '右Win' ], [ '13', 'Enter' ], [ '32', '空格' ]
+	[ '91', '左Win' ], [ '92', '右Win' ], [ '13', '回车键' ], [ '32', '空格' ], [ '8', '退格键' ]
 ];
 
 function keysOf(result) {
@@ -140,7 +140,9 @@ return view.extend({
 		var notice = E('div', { 'class': 'micyou-notice' });
 		function say(text, kind) {
 			notice.textContent = text;
-			notice.className = 'micyou-notice ' + (kind == 'error' ? 'is-error' : 'is-ok');
+			notice.className = 'micyou-notice ' + (kind == 'error' ? 'is-error'
+				: kind == 'blue' ? 'is-blue'
+				: kind == 'neutral' ? 'is-neutral' : 'is-ok');
 		}
 
 		/* ================= 连接设置 ================= */
@@ -220,7 +222,9 @@ return view.extend({
 			E('button', { 'class': 'cbi-button', 'click': function() {
 				return callAutostart(!STATUS.autostart).then(function(r) {
 					STATUS = r;
-					say(r.autostart ? '已开启开机自动连接。' : '已取消开机自动连接。', 'ok');
+					// 开启 → 蓝色提示；关闭 → 白/灰（中性）提示
+					say(r.autostart ? '已开启开机自动启动' : '已关闭开机自动启动',
+						r.autostart ? 'blue' : 'neutral');
 				});
 			} }, STATUS.autostart ? '取消开机自启' : '开机自动连接')
 		]));

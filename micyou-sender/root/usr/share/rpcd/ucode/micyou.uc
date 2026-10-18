@@ -173,6 +173,10 @@ return {
 					return { ok: true, message: 'nothing to save' };
 				push(cmds, 'uci -q commit micyou');
 				let r = run(join(' && ', cmds));
+				// 增益改动立即生效（页面保存与“导入配置”都走这里）
+				let gain = main.gain;
+				if (r.rc == 0 && gain != null && `${gain}` != '')
+					run(`${CTL} gain ${gain} >/dev/null 2>&1 || true`);
 				return { ok: r.rc == 0, message: r.out };
 			}
 		},

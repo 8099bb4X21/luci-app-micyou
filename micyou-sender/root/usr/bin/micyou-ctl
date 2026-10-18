@@ -126,7 +126,8 @@ send-key)
 	;;
 release-all)
 	# 一次性把所有常见键“松开”：手动发过 down 忘发 up、或 PC 端卡键时救急
-	for vk in 13 32 164 165 162 163 92 91; do
+	# （含 回车 13 / 空格 32 / 退格 8 / 左右 Alt 164,165 / 左右 Ctrl 162,163 / 左右 Win 92,91）
+	for vk in 13 32 8 164 165 162 163 92 91; do
 		echo "$vk up"
 	done >> "${TMPQ:-/tmp/run/micyou/keys.q}"
 	;;

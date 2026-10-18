@@ -85,6 +85,16 @@
 	color: #c62828;
 }
 
+.micyou-notice.is-blue {
+	color: #1976d2;
+	font-weight: 600;
+}
+
+.micyou-notice.is-neutral {
+	color: inherit;
+	opacity: .85;
+}
+
 /* 可折叠区块（高级自定义，默认折叠） */
 .micyou-details > summary {
 	cursor: pointer;
