@@ -1,0 +1,36 @@
+# MicYou 无线麦克风（共享配置：infoscreen 屏幕界面与 LuCI 网页界面都读写这里）
+#
+# [micyou.main]
+#   server           PC 端 MicYou 服务端地址（默认 192.168.1.100；屏幕可“搜索服务器”自动发现）
+#   port             TCP 控制端口（默认 8554）；UDP 音频端口自动 = 端口 + 1
+#   device           ALSA 采集设备（默认 hw:0,0 = E5 内置麦克风）
+#   gain             采集增益档：（空 = 不设置）0..7，每档 3dB，默认 4 档 = 12dB
+#   vibrate          所有按键震动的总开关：0 = 都不震（默认 1）
+#   ms               统一长按阈值（毫秒；空 = 各键用 <id>_ms，再默认 500）
+#   sched_connect    定时连接：HH:MM（空 = 不启用）
+#   sched_disconnect 定时断开：HH:MM（空 = 不启用）
+#
+# [keys.keys]  按键功能，每个键最多七项：
+#   <id>_single / <id>_long   单击 / 长按动作。取值：
+#       original          不接管本键（默认，键照常）
+#       connect           连接服务器
+#       disconnect        断开服务器
+#       toggle            切换连接状态
+#       connect_if_down   若未连接则自动连接
+#       fn:<功能>         执行某个“原有功能”，功能见 /usr/share/micyou/funcs.uc
+#                         （page1..page9 页面、volup/voldown、power、menu、ok、back、up/down/left/right）
+#   <id>_mode                  none（默认）| pckey（自定义电脑按键）
+#   <id>_chord                 pckey 的组合键：Windows VK 码，空格分隔（如 164 32 = 左Alt+空格）
+#   <id>_autoconnect           1 = 发远程按键前若未连接则自动连接（默认 0）
+#   <id>_ms                    本键长按阈值（默认 500；被 main.ms 覆盖时忽略）
+#   <id>_vib                   1 = 本键动作时震动（默认 1）
+#
+# 默认：**所有键都不接管（original）**，需要哪个键做什么在 LuCI 里配。
+
+config micyou 'main'
+	option server '192.168.1.100'
+	option port '8554'
+	option device 'hw:0,0'
+	option gain '4'
+
+config keys 'keys'

@@ -1,0 +1,163 @@
+#!/bin/sh
+# MicYou 无线麦克风控制（E5 端）。
+#
+#   micyou-ctl connect       启动发送端（把本机麦克风推给 PC 服务端）
+#   micyou-ctl disconnect    停止发送端
+#   micyou-ctl toggle        在两者之间切换
+#   micyou-ctl status        打印 connected / disconnected
+#                            （退出码：0 = 已连接，1 = 未连接；供脚本/后端判断）
+#   micyou-ctl autostart on|off|toggle|status
+#                            开机自动连接（/etc/init.d/micyou-sender enable/disable）
+#                            status 退出码：0 = 已开启自启，1 = 未开启
+#   micyou-ctl scan [port]   扫描同网段里应答 MicYou 握手的服务器（输出 JSON）
+#   micyou-ctl gain [0-7]    采集增益（ADC_1 Gain，8 档 × 3dB = 0..21dB）；无参数则读当前档
+#   micyou-ctl apply-gain    按 UCI micyou.main.gain 应用采集增益（connect 时也会自动应用）
+#   micyou-ctl send-key "165 32" down|up [auto]
+#                            向 PC 发“远程按键”（PC 端 fork 用 WinUHID 注入）；
+#                            auto = 未连接时先自动连接再发
+#
+# 配置来自 UCI：/etc/config/micyou  [micyou.main] server / port / device / gain
+set -u
+
+INIT=/etc/init.d/micyou-sender
+SCANNER=/usr/bin/micyou-scan-servers.py
+ADC_CARD=0
+ADC_CONTROL='ADC_1 Gain ADC_1'
+ADC_MAX=7
+READY=/tmp/run/micyou/connected
+KEYQ=/tmp/run/micyou/keys.q
+
+usage() {
+	echo "usage: micyou-ctl connect|disconnect|toggle|status|scan [port]|gain [0-7]|apply-gain|send-key \"<vk...>\" down|up [auto]|autostart on|off|toggle|status" >&2
+	exit 1
+}
+
+gain_read() {
+	amixer -c "$ADC_CARD" sget "$ADC_CONTROL" 2>/dev/null \
+		| grep -v Limits | sed -n "s/.*Capture \([0-7]\) .*/\1/p" | head -1
+}
+
+gain_set() {
+	case "${1:-}" in
+	[0-7]) ;;
+	*) echo "micyou: 采集增益只能是 0..7（对应 0..21dB）" >&2; exit 2 ;;
+	esac
+	amixer -c "$ADC_CARD" sset "$ADC_CONTROL" "$1" >/dev/null 2>&1 || {
+		echo "micyou: 设置采集增益失败（$ADC_CONTROL）" >&2; exit 3; }
+}
+
+apply_gain() {
+	local saved
+	saved=$(uci -q get micyou.main.gain || true)
+	[ -n "$saved" ] || return 0
+	gain_set "$saved"
+}
+
+send_key() {
+	local chord="$1" phase="$2" auto="${3:-}"
+	[ -n "$chord" ] || { echo "micyou: 空按键组合" >&2; exit 2; }
+	if [ "$phase" != down ] && [ "$phase" != up ]; then
+		echo "micyou: 阶段只能是 down 或 up" >&2; exit 2
+	fi
+	if [ "$auto" = auto ] && [ ! -e "$READY" ]; then
+		$INIT start
+		local i=0
+		while [ ! -e "$READY" ] && [ "$i" -lt 80 ]; do
+			sleep 0.1
+			i=$((i + 1))
+		done
+	fi
+	[ -e "$READY" ] || { echo "micyou: 未连接，无法发送远程按键" >&2; exit 3; }
+	mkdir -p "$(dirname "$KEYQ")"
+	printf '%s %s\n' "$chord" "$phase" >> "$KEYQ"
+}
+
+running() {
+	pgrep -f micyou_sender.py >/dev/null 2>&1
+}
+
+autostart_on() {
+	# procd 的开机自启由 /etc/rc.d 里的 S* 链接决定
+	ls /etc/rc.d/S*micyou-sender >/dev/null 2>&1
+}
+
+case "${1:-}" in
+connect)
+	if [ -z "$(uci -q get micyou.main.server || true)" ]; then
+		echo "micyou: 未设置服务器地址（在 LuCI 的“服务 -> 无线麦克风”或屏幕设置里填写）" >&2
+		exit 2
+	fi
+	apply_gain
+	$INIT start
+	;;
+disconnect)
+	$INIT stop
+	;;
+toggle)
+	if running; then
+		$INIT stop
+	else
+		exec "$0" connect
+	fi
+	;;
+status)
+	if running; then
+		echo connected
+		exit 0
+	fi
+	echo disconnected
+	exit 1
+	;;
+scan)
+	"$SCANNER" "${2:-$(uci -q get micyou.main.port || echo 8554)}"
+	;;
+gain)
+	if [ -n "${2:-}" ]; then
+		gain_set "$2"
+	else
+		gain_read
+	fi
+	;;
+apply-gain)
+	apply_gain
+	;;
+send-key)
+	send_key "${2:-}" "${3:-}" "${4:-}"
+	;;
+release-all)
+	# 一次性把所有常见键“松开”：手动发过 down 忘发 up、或 PC 端卡键时救急
+	for vk in 13 32 164 165 162 163 92 91; do
+		echo "$vk up"
+	done >> "${TMPQ:-/tmp/run/micyou/keys.q}"
+	;;
+keys)
+	: # 占位（避免误用）
+	;;
+autostart)
+	case "${2:-status}" in
+	on)
+		$INIT enable
+		;;
+	off)
+		$INIT disable
+		;;
+	toggle)
+		if autostart_on; then $INIT disable; else $INIT enable; fi
+		;;
+	status)
+		if autostart_on; then
+			echo on
+			exit 0
+		fi
+		echo off
+		exit 1
+		;;
+	*)
+		usage
+		;;
+	esac
+	;;
+*)
+	usage
+	;;
+esac

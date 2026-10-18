@@ -1,0 +1,34 @@
+{
+	"luci-app-micyou": {
+		"description": "MicYou wireless microphone: server address, capture gain, key functions and connect/disconnect",
+		"read": {
+			"ubus": {
+				"micyou": [
+					"status",
+					"keys",
+					"gain",
+					"scan",
+					"config"
+				]
+			},
+			"uci": [
+				"micyou"
+			]
+		},
+		"write": {
+			"ubus": {
+				"micyou": [
+					"connect",
+					"disconnect",
+					"set_autostart",
+					"set_gain",
+					"save",
+					"reset"
+				]
+			},
+			"uci": [
+				"micyou"
+			]
+		}
+	}
+}

@@ -1,0 +1,1 @@
+	if (micyouKeyDown(e)) return;

@@ -1,0 +1,13 @@
+{
+	"admin/services/micyou": {
+		"title": "无线麦克风",
+		"order": 62,
+		"action": {
+			"type": "view",
+			"path": "micyou/settings"
+		},
+		"depends": {
+			"acl": [ "luci-app-micyou" ]
+		}
+	}
+}
