@@ -34,8 +34,8 @@
 前提：PC 能 `ssh root@<设备IP>`；设备已装 infoscreen 与 python3。
 
 ```sh
-./tools/deploy.sh 192.168.1.172        # 默认就是 192.168.1.172
-./test/live-check.sh 192.168.1.172     # 自检 23 项；全绿即安装成功
+./tools/deploy.sh <设备IP>                 # 例如 192.168.1.172，按你自己的网络填
+./test/live-check.sh <设备IP>              # 自检 23 项；全绿即安装成功
 ```
 
 `deploy.sh` 做四件事：装发送端包 → 装 LuCI 界面包 → **用“锚点替换”把改动打进 infoscreen 的 4 个文件**
@@ -47,7 +47,7 @@
 ```sh
 # PC 端打包
 tar -czf micyou-bundle.tar.gz micyou-sender luci-app-micyou infoscreen tools test
-scp micyou-bundle.tar.gz root@192.168.1.172:/tmp/
+scp micyou-bundle.tar.gz root@<设备IP>:/tmp/
 
 # 设备端（SSH 或串口终端里）
 cd /tmp && tar -xzf micyou-bundle.tar.gz
@@ -75,7 +75,7 @@ cd /tmp && sh tools/deploy-on-device.sh
 | 备份 / 恢复 | 页面下方：保存并应用 / 放弃修改并刷新 / 恢复默认值 / 导出配置 / 导入配置 |
 | 查看状态 | `micyou-ctl status`（退出码 0=已连接）/ `ubus call micyou status` |
 
-**默认值**：服务器 `192.168.1.100`、端口 `8554`、增益 4 档(12dB)、**所有按键都不接管（保持原有功能）**。
+**默认值**：服务器 `192.168.1.100`（可在 LuCI 或屏幕“搜索服务器”里改）、端口 `8554`、增益 4 档(12dB)、**所有按键都不接管（保持原有功能）**。
 
 ---
 

@@ -1,19 +1,24 @@
 #!/bin/sh
 # MicYou 无线麦克风 · 一键部署（在 PC 上跑，经 SSH 推到设备）
 #
-#   ./tools/deploy.sh [设备IP]        # 默认 192.168.1.172
+#   ./tools/deploy.sh <设备IP>        # 例如 ./tools/deploy.sh 192.168.1.172
+#
+# 不预置默认地址：脚本属于通用工具，地址按你自己的网络填。
 #
 # 做四件事：
-#   1) 装发送端包（micyou-sender）：发送端、micyou-ctl、键表/功能表、rpcd 后端、定时服务
+#   1) 装发送端包（micyou-sender）
 #   2) 装 LuCI 界面包（luci-app-micyou）
-#   3) 用“锚点替换”把改动打进 infoscreen 的 4 个文件（不覆盖整文件，参见 infoscreen/README）
+#   3) 用“锚点替换”把改动打进 infoscreen 的 4 个文件（不覆盖整文件，见 infoscreen/README）
 #   4) 去 CR、迁移旧配置、启用/重启服务
 #
-# 前提：设备已装 infoscreen（e5-infoscreen）与 python3（`apk add python3-light`）；
-#       旧的 /etc/config/micyou 不会被覆盖。
+# 前提：设备已装 infoscreen（e5-infoscreen）与 python3；旧的 /etc/config/micyou 不会被覆盖。
 set -eu
 
-HOST=${1:-192.168.1.172}
+HOST=${1:-}
+if [ -z "$HOST" ]; then
+	echo "用法: $0 <设备IP>（按你自己的网络填，脚本不预置默认地址；示例 192.168.1.172）" >&2
+	exit 2
+fi
 HERE=$(cd "$(dirname "$0")/.." && pwd)
 SSH="ssh root@$HOST"
 
@@ -70,6 +75,6 @@ $SSH '
 echo
 echo "完成。核对："
 echo "  ./test/live-check.sh $HOST            # 一键自检（23 项）"
-echo "  ssh root@$HOST micyou-ctl status"
+echo "  ./tools/check-device.sh $HOST         # 设备文件与本地逐文件校验"
 echo "  网页 http://$HOST/ → 服务 → 无线麦克风"
 echo "  屏幕 设置 → 无线麦克风"
