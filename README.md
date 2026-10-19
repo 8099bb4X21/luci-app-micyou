@@ -1,5 +1,20 @@
 # luci-app-micyou
 
+# 请先读：这不是通用的 APK 安装包
+
+**本仓库不是一个能直接装到任意路由器上的 LuCI 插件/apk。**
+
+它只适用于 **Rongyue E5（Unisoc UMS9621）上运行 OpenWrt（[e5-linux](https://github.com/Enceka/e5-linux) 的 `openwrt/` 构建）** 的设备，
+并且设备上必须**已经装好**：`python3-light`、**信息屏 e5-infoscreen**（本仓库要用“锚点替换”把改动打进它的 4 个文件）、
+`uhttpd-mod-ucode` 与 LuCI。
+
+只单独安装 `luci-app-micyou.apk` **不会有可用的东西**：既不会出现能工作的界面，也不会把麦克风推流起来。
+必须按下面的「安装」章节**整体部署**（发送端包 `micyou-sender` + 界面包 `luci-app-micyou` + 信息屏适配），
+PC 端还要有 MicYou 服务端；要注入电脑按键则必须用 **MicYou 的 fork 版本 + WinUHID**。
+其它机型、原厂固件、或没有信息屏的环境**不要安装**。
+
+---
+
 把 **E5（Rongyue E5，OpenWrt / [e5-linux](https://github.com/Enceka/e5-linux)）的内置麦克风**
 经局域网推送到 **PC 上的 MicYou 服务端**，让 PC 把 E5 当麦克风用；
 同时提供 **LuCI 网页界面** 与 **信息屏（e5-infoscreen）界面**，并支持：

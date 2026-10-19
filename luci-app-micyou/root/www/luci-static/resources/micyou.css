@@ -95,6 +95,20 @@
 	opacity: .85;
 }
 
+/* 开机自动启动按钮：开启=蓝底白字，关闭=白底灰字（按钮本身变色+换字，不弹提示） */
+.micyou-page button.micyou-auto-on {
+	background: #1976d2 !important;
+	border-color: #1976d2 !important;
+	color: #fff !important;
+	font-weight: 600;
+}
+
+.micyou-page button.micyou-auto-off {
+	background: #fff !important;
+	border-color: #cfcfcf !important;
+	color: #6b6b6b !important;
+}
+
 /* 可折叠区块（高级自定义，默认折叠） */
 .micyou-details > summary {
 	cursor: pointer;

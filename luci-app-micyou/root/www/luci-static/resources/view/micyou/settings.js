@@ -184,6 +184,17 @@ return view.extend({
 			stateText.textContent = STATUS.connected ? '已连接' : '未连接';
 			stateText.style.color = STATUS.connected ? '#2e7d32' : '#c62828';
 		}
+		var autostartBtn = E('button', {
+				'class': 'cbi-button ' + (STATUS.autostart ? 'micyou-auto-on' : 'micyou-auto-off'),
+				'click': function() {
+					return callAutostart(!STATUS.autostart).then(function(r) {
+						STATUS = r;
+						// 按钮本身变色 + 换文字（不额外弹提示）
+						autostartBtn.textContent = r.autostart ? '已开启开机自动启动' : '已关闭开机自动启动';
+						autostartBtn.className = 'cbi-button ' + (r.autostart ? 'micyou-auto-on' : 'micyou-auto-off');
+					});
+				}
+			}, STATUS.autostart ? '已开启开机自动启动' : '已关闭开机自动启动');
 		mainCard.appendChild(makeRow('立即操作', [
 			E('button', { 'class': 'cbi-button cbi-button-apply', 'click': function() {
 				return callConnect().then(function(r) {
@@ -219,14 +230,7 @@ return view.extend({
 					}, 3000);
 				});
 			} }, '断开服务器'),
-			E('button', { 'class': 'cbi-button', 'click': function() {
-				return callAutostart(!STATUS.autostart).then(function(r) {
-					STATUS = r;
-					// 开启 → 蓝色提示；关闭 → 白/灰（中性）提示
-					say(r.autostart ? '已开启开机自动启动' : '已关闭开机自动启动',
-						r.autostart ? 'blue' : 'neutral');
-				});
-			} }, STATUS.autostart ? '取消开机自启' : '开机自动连接')
+			autostartBtn
 		]));
 		root.appendChild(mainCard);
 
