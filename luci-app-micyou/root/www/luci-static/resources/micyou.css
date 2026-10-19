@@ -1,4 +1,4 @@
-/* MicYou 无线麦克风 LuCI 页面的自定义排版（对应 view/micyou/settings.js） */
+/* MicYou 无线麦克风 LuCI 页面：三标签页 + 顶部吸顶工具条 */
 
 .micyou-card {
 	border: 1px solid rgba(128, 128, 128, .35);
@@ -7,10 +7,66 @@
 	margin-bottom: 1em;
 }
 
-.micyou-card > h3 {
-	margin: .2em 0 .6em;
+.micyou-card > h3 { margin: .2em 0 .6em; }
+
+/* 顶部吸顶工具条：主题 header 是 sticky top:0 / 高 14×--spacing，这里放在它下面 */
+.micyou-topbar {
+	position: sticky;
+	top: calc(var(--spacing, .25rem) * 16);
+	z-index: 30;
+	background: var(--bg, #fff);
+	border-bottom: 1px solid rgba(128, 128, 128, .35);
+	padding: .45em .2em .35em;
+	margin: 0 0 .4em;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, .06);
 }
 
+.micyou-topbar-row {
+	display: flex;
+	align-items: center;
+	gap: .45em;
+	flex-wrap: wrap;
+}
+
+.micyou-spacer { flex: 1 1 auto; }
+
+.micyou-pill {
+	font-weight: 600;
+	padding: .15em .6em;
+	border-radius: 999px;
+	font-size: .9em;
+}
+
+.micyou-pill.on { background: #e8f5e9; color: #2e7d32; }
+.micyou-pill.off { background: #ffebee; color: #c62828; }
+
+/* 标签页 */
+.micyou-tabs {
+	display: flex;
+	gap: .2em;
+	margin: .7em 0 .6em;
+	border-bottom: 1px solid rgba(128, 128, 128, .35);
+}
+
+.micyou-tabs button {
+	border: none;
+	background: transparent;
+	color: inherit;
+	padding: .5em .9em;
+	cursor: pointer;
+	border-bottom: 2px solid transparent;
+}
+
+.micyou-tabs button.active {
+	border-bottom-color: #1976d2;
+	color: #1976d2;
+	font-weight: 600;
+}
+
+.micyou-panel { display: none; }
+.micyou-panel.active { display: block; }
+
+/* 通用行 */
 .micyou-row {
 	display: flex;
 	align-items: center;
@@ -19,83 +75,50 @@
 	flex-wrap: wrap;
 }
 
-.micyou-row-label {
-	min-width: 12em;
+.micyou-row-label { min-width: 12em; color: rgba(128, 128, 128, .95); }
+.micyou-row-controls { display: flex; align-items: center; gap: .4em; flex-wrap: wrap; }
+.micyou-tag { font-size: .9em; color: rgba(128, 128, 128, .95); }
+.micyou-check { display: inline-flex; align-items: center; gap: .35em; white-space: nowrap; }
+
+.micyou-hint {
+	font-size: .9em;
 	color: rgba(128, 128, 128, .95);
+	margin: .2em 0 .5em;
+	line-height: 1.5;
 }
 
-.micyou-row-controls {
+/* 按键列表：每个键一行 */
+.micyou-krow {
+	display: flex;
+	align-items: center;
+	gap: .45em;
+	padding: .35em .1em;
+	border-bottom: 1px dashed rgba(128, 128, 128, .25);
+	flex-wrap: wrap;
+}
+
+.micyou-krow:last-child { border-bottom: none; }
+.micyou-kname { min-width: 11em; }
+.micyou-kname small { color: rgba(128, 128, 128, .95); margin-left: .35em; }
+
+.micyou-kextra {
+	flex-basis: 100%;
 	display: flex;
 	align-items: center;
 	gap: .4em;
+	padding: .2em 0 .1em 11.4em;
 	flex-wrap: wrap;
 }
 
-.micyou-key {
-	border-top: 1px dashed rgba(128, 128, 128, .35);
-	padding: .45em 0;
+/* “＋电脑按键”开关 */
+.micyou-toggle { font-size: .9em; }
+.micyou-toggle.on {
+	background: #1976d2 !important;
+	border-color: #1976d2 !important;
+	color: #fff !important;
 }
 
-.micyou-key:first-of-type {
-	border-top: none;
-}
-
-.micyou-tag {
-	font-size: .9em;
-	color: rgba(128, 128, 128, .95);
-}
-
-.micyou-check {
-	display: inline-flex;
-	align-items: center;
-	gap: .35em;
-	white-space: nowrap;
-}
-
-.micyou-state {
-	font-weight: 600;
-}
-
-.micyou-page select[disabled] {
-	cursor: not-allowed;
-}
-
-/* 按钮：靠左排列，提示条紧随其后（同一列） */
-.micyou-buttons {
-	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-	gap: .5em;
-	flex-wrap: wrap;
-	margin: .4em 0 .5em;
-}
-
-.micyou-notice {
-	min-height: 1.4em;
-	font-size: .95em;
-	padding: .25em .1em;
-	color: rgba(128, 128, 128, .95);
-}
-
-.micyou-notice.is-ok {
-	color: #2e7d32;
-}
-
-.micyou-notice.is-error {
-	color: #c62828;
-}
-
-.micyou-notice.is-blue {
-	color: #1976d2;
-	font-weight: 600;
-}
-
-.micyou-notice.is-neutral {
-	color: inherit;
-	opacity: .85;
-}
-
-/* 开机自动启动按钮：开启=蓝底白字，关闭=白底灰字（按钮本身变色+换字，不弹提示） */
+/* 开机自动启动按钮：开=蓝底白字 / 关=白底灰字 */
 .micyou-page button.micyou-auto-on {
 	background: #1976d2 !important;
 	border-color: #1976d2 !important;
@@ -109,17 +132,15 @@
 	color: #6b6b6b !important;
 }
 
-/* 可折叠区块（高级自定义，默认折叠） */
-.micyou-details > summary {
-	cursor: pointer;
-	font-weight: 600;
-	padding: .2em 0;
+/* 提示条（吸顶条内，滚动时始终可见） */
+.micyou-notice {
+	min-height: 1.3em;
+	font-size: .95em;
+	padding: .15em .1em 0;
+	color: rgba(128, 128, 128, .95);
 }
 
-.micyou-details > summary:hover {
-	opacity: .85;
-}
-
-.micyou-details-body {
-	margin-top: .5em;
-}
+.micyou-notice.is-ok { color: #2e7d32; }
+.micyou-notice.is-error { color: #c62828; }
+.micyou-notice.is-blue { color: #1976d2; font-weight: 600; }
+.micyou-notice.is-neutral { color: inherit; opacity: .85; }

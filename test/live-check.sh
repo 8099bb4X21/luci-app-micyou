@@ -33,7 +33,7 @@ run "api.uc 路由" 'grep -q "path == ./micyou" /usr/share/e5-infoscreen/api.uc 
 run "app.js 引擎" 'grep -q "function micyouKeyDown" /usr/share/e5-infoscreen/www/app.js && grep -q "if (micyouKeyDown(e)) return;" /usr/share/e5-infoscreen/www/app.js && grep -q "if (micyouKeyDown(m)) return;" /usr/share/e5-infoscreen/www/app.js && grep -q "case .keyup.:" /usr/share/e5-infoscreen/www/app.js && grep -q "document.addEventListener(.keyup." /usr/share/e5-infoscreen/www/app.js && grep -q micyouRawKey /usr/share/e5-infoscreen/www/app.js && grep -q micyouOriginal /usr/share/e5-infoscreen/www/app.js && echo A' A
 run "sdk keyup 转发" 'grep -q "e5: .keyup." /usr/share/e5-infoscreen/www/sdk/e5.js && echo A' A
 run "LuCI 视图" 'grep -q keysOf /www/luci-static/resources/view/micyou/settings.js && grep -q callReset /www/luci-static/resources/view/micyou/settings.js && grep -q callSave /www/luci-static/resources/view/micyou/settings.js && grep -q "sched_connect" /www/luci-static/resources/view/micyou/settings.js && grep -q "统一长按阈值" /www/luci-static/resources/view/micyou/settings.js && echo A' A
-run "LuCI CSS" 'grep -q micyou-buttons /www/luci-static/resources/micyou.css && grep -q micyou-notice /www/luci-static/resources/micyou.css && echo A' A
+run "LuCI CSS" 'grep -q micyou-topbar /www/luci-static/resources/micyou.css && grep -q micyou-tabs /www/luci-static/resources/micyou.css && grep -q micyou-notice /www/luci-static/resources/micyou.css && echo A' A
 run "键表 27 条" 'ucode -e "print(length(loadfile(\"/usr/share/micyou/keys.uc\",{raw_mode:true})()))"' 27
 run "原功能表 19 条" 'ucode -e "print(length(loadfile(\"/usr/share/micyou/funcs.uc\",{raw_mode:true})()))"' 19
 
