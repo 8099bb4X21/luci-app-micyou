@@ -91,24 +91,40 @@
 .micyou-krow {
 	display: flex;
 	align-items: center;
-	gap: .45em;
-	padding: .35em .1em;
+	gap: .35em;
+	padding: .28em .1em;
 	border-bottom: 1px dashed rgba(128, 128, 128, .25);
 	flex-wrap: wrap;
 }
 
+/* 固定列宽：让“键名 / 单击 / 长按 / ＋电脑按键”排在同一行（27 个键不再折成两行） */
+.micyou-krow > select { width: 9em; }
+.micyou-krow .micyou-kname { flex: 0 0 8em; min-width: 0; }
+.micyou-krow .micyou-toggle { flex: 0 0 auto; }
+
 .micyou-krow:last-child { border-bottom: none; }
 .micyou-kname { min-width: 11em; }
-.micyou-kname small { color: rgba(128, 128, 128, .95); margin-left: .35em; }
+.micyou-kname small {
+	display: inline-block;
+	max-width: 6.2em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	vertical-align: bottom;
+	color: rgba(128, 128, 128, .95);
+	margin-left: .35em;
+}
 
 .micyou-kextra {
 	flex-basis: 100%;
 	display: flex;
 	align-items: center;
 	gap: .4em;
-	padding: .2em 0 .1em 11.4em;
+	padding: .15em 0 .1em 8.4em;
 	flex-wrap: wrap;
 }
+
+.micyou-kextra select { width: 6.5em; }
 
 /* “＋电脑按键”开关 */
 .micyou-toggle { font-size: .9em; }

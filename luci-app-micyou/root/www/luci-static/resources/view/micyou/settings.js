@@ -119,7 +119,7 @@ return view.extend({
 
 		var actionOptions = [ [ 'group', '麦克风' ] ].concat(MIC_ACTIONS).concat([
 			[ 'group', '原有功能' ],
-			[ 'original', '保持不变（不接管本键）' ]
+			[ 'original', '原功能' ]
 		]).concat(FUNCS.map(function(f) { return [ 'fn:' + f.id, f.zh ]; }));
 
 		function cur(id, field, fallback) {
@@ -304,6 +304,13 @@ return view.extend({
 		]);
 		root.appendChild(bar);
 		paintState();
+		// 隐藏主题自带的底部「保存并应用 / 保存 / 复位」页脚：本页是自定义控件，
+		// 那组按钮没有意义，而且与顶部工具条重复（元素可能在 render 之后才插入，补两次）。
+		function hideThemeActions() {
+			document.querySelectorAll('.cbi-page-actions').forEach(function(el) { el.style.display = 'none'; });
+		}
+		setTimeout(hideThemeActions, 0);
+		setTimeout(hideThemeActions, 300);
 
 		// ================= 标签页 =================
 		var panels = {}, tabBtns = {};
@@ -336,10 +343,10 @@ return view.extend({
 		var gainSelect = makeSelect(gainOpts, gainValue, function(v) { setEdit('__gain', v); });
 		connCard.appendChild(makeRow('采集设备 · 采集增益', [ devInput, gainSelect ]));
 
-		var schedConnect = E('input', { 'type': 'time', 'class': 'cbi-input-text' });
+		var schedConnect = E('input', { 'type': 'time', 'class': 'cbi-input-text', 'style': 'width:8em' });
 		schedConnect.value = main.sched_connect || '';
 		schedConnect.addEventListener('change', function() { setEdit('__sched_connect', schedConnect.value); });
-		var schedDisconnect = E('input', { 'type': 'time', 'class': 'cbi-input-text' });
+		var schedDisconnect = E('input', { 'type': 'time', 'class': 'cbi-input-text', 'style': 'width:8em' });
 		schedDisconnect.value = main.sched_disconnect || '';
 		schedDisconnect.addEventListener('change', function() { setEdit('__sched_disconnect', schedDisconnect.value); });
 		connCard.appendChild(makeRow('定时连接 · 定时断开', [
@@ -386,9 +393,10 @@ return view.extend({
 
 		keys.forEach(function(key) {
 			var row = E('div', { 'class': 'micyou-krow' });
-			var nameEl = E('div', { 'class': 'micyou-kname' }, [
-				key.zh, E('small', {}, key.orig_short_zh || '')
-			]);
+			var origShort = key.orig_short_zh || '';
+			var nameEl = E('div', { 'class': 'micyou-kname' }, [ key.zh ]);
+			if (origShort && origShort !== key.zh)
+				nameEl.appendChild(E('small', { 'title': origShort }, origShort));
 			var singleSel = makeSelect(actionOptions, cur(key.id, 'single', 'original'), function(v) {
 				setEdit(key.id + '_single', v);
 			});
