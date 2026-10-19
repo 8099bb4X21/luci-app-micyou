@@ -291,7 +291,7 @@ return view.extend({
 			E('div', { 'class': 'micyou-topbar-row' }, [
 				E('button', { 'class': 'cbi-button cbi-button-apply', 'click': doSave }, '保存并应用'),
 				E('button', { 'class': 'cbi-button', 'click': function() { location.reload(); } }, '放弃修改并刷新'),
-				E('button', { 'class': 'cbi-button', 'click': doReset }, '恢复默认值'),
+				E('button', { 'class': 'cbi-button micyou-danger', 'click': doReset }, '恢复默认值'),
 				E('button', { 'class': 'cbi-button', 'click': doExport }, '导出配置'),
 				E('button', { 'class': 'cbi-button', 'click': function() { fileInput.click(); } }, '导入配置'),
 				fileInput,
@@ -332,7 +332,9 @@ return view.extend({
 		var connCard = E('div', { 'class': 'micyou-card' }, [ E('h3', {}, '连接设置') ]);
 		var hostInput = makeInput(main.server || '', '192.168.1.100', function(v) { setEdit('__server', v); }, 14);
 		var portInput = makeInput(main.port || '8554', '8554', function(v) { setEdit('__port', v); }, 5);
-		connCard.appendChild(makeRow('服务器地址 : 控制端口', [ hostInput, E('span', {}, ':'), portInput ]));
+		var rowHost = makeRow('服务器地址 : 控制端口', [ hostInput, E('span', {}, ':'), portInput ]);
+		rowHost.classList.add('micyou-row-fill');
+		connCard.appendChild(rowHost);
 
 		var devInput = makeInput(main.device || 'hw:0,0', 'hw:0,0', function(v) { setEdit('__device', v); }, 12);
 		var gainOpts = [ [ '', '不设置' ] ];
@@ -341,7 +343,9 @@ return view.extend({
 		var gainValue = (main.gain != null && main.gain !== '') ? String(main.gain)
 			: (GAIN.step != null ? String(GAIN.step) : '');
 		var gainSelect = makeSelect(gainOpts, gainValue, function(v) { setEdit('__gain', v); });
-		connCard.appendChild(makeRow('采集设备 · 采集增益', [ devInput, gainSelect ]));
+		var rowDev = makeRow('采集设备 · 采集增益', [ devInput, gainSelect ]);
+		rowDev.classList.add('micyou-row-fill');
+		connCard.appendChild(rowDev);
 
 		var schedConnect = E('input', { 'type': 'time', 'class': 'cbi-input-text', 'style': 'width:8em' });
 		schedConnect.value = main.sched_connect || '';
@@ -365,10 +369,13 @@ return view.extend({
 		// ================= 按键功能 =================
 		var keysCard = E('div', { 'class': 'micyou-card' }, [
 			E('h3', {}, '按键功能'),
-			E('div', { 'class': 'micyou-hint' },
+			E('div', { 'class': 'micyou-hint' }, [
 				'每个键一行：选“单击/长按”做什么（可把任意“原有功能”挪到本键）；' +
-				'点“＋ 电脑按键”可把它变成 PC 上的按键（PC 端需运行 MicYou的fork版本 并装好 WinUHID；' +
-				'按住不松 = PC 上一直按着，适合对讲键）。只配置过的键才会被接管，其余保持原样。')
+				'点“＋ 电脑按键”可把它变成 PC 上的按键（PC 端需运行 ',
+				E('a', { 'href': 'https://github.com/8099bb4X21/MicYou', 'target': '_blank', 'rel': 'noopener' },
+					'MicYou的fork版本'),
+				' 并装好 WinUHID；按住不松 = PC 上一直按着，适合对讲键）。只配置过的键才会被接管，其余保持原样。'
+			])
 		]);
 		var filterInput = E('input', { 'class': 'cbi-input-text', 'type': 'text',
 			'placeholder': '搜索按键（名称 / 原功能）', 'style': 'width:16em' });
