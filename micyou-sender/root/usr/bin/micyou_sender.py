@@ -20,6 +20,7 @@ import logging
 import math
 import os
 import random
+import signal
 import socket
 import struct
 import subprocess
@@ -504,6 +505,11 @@ def main():
     stop_event = threading.Event()
     stats_holder = {}
 
+    # procd stop / micyou-ctl disconnect 默认发 SIGTERM 直接终止进程，跳过 finally，
+    # 会留下“已连接”标记（/tmp/run/micyou/connected）→ 之后 send-key 误以为还连着、
+    # 跳过“若未连接自动连接”。这里显式转成优雅退出，让 finally 清掉标记。
+    signal.signal(signal.SIGTERM, lambda *_args: stop_event.set())
+
     link = ControlLink(args.host, args.port, session_id, args.platform,
                        stop_event, args.source_ip, stats_holder, marker_path=args.marker)
     link.start()
@@ -581,6 +587,11 @@ def main():
         link.close()
         source.close()
         udp.close()
+        # 优雅退出时清掉“已连接”标记，避免下次误判（SIGKILL 时仍需 ctl 侧的陈旧校验兜底）
+        try:
+            os.unlink(args.marker)
+        except OSError:
+            pass
 
     elapsed = time.monotonic() - start_time
     logger.info("共发送 %d 包 / %.1f KB / 历时 %.1f 秒；最终链路状态：%s",

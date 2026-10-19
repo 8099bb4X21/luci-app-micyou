@@ -59,12 +59,29 @@ send_key() {
 	if [ "$phase" != down ] && [ "$phase" != up ]; then
 		echo "micyou: 阶段只能是 down 或 up" >&2; exit 2
 	fi
+	# 标记可能是上次异常退出（SIGKILL/崩溃）留下的：校验里面的 pid 是否就是“正在跑的发送端”
+	if [ -e "$READY" ]; then
+		local marked current
+		marked=$(tr -dc '0-9' < "$READY" 2>/dev/null)
+		current=$(pgrep -f micyou_sender.py 2>/dev/null | head -1)
+		if [ -z "$marked" ] || [ "$marked" != "$current" ]; then
+			unlink "$READY" 2>/dev/null || true
+		fi
+	fi
 	if [ "$auto" = auto ] && [ ! -e "$READY" ]; then
 		$INIT start
-		local i=0
-		while [ ! -e "$READY" ] && [ "$i" -lt 80 ]; do
-			sleep 0.1
-			i=$((i + 1))
+		# 注意：设备自带 sleep 不支持小数（会报 "invalid number '0.1'" 并立刻返回 →
+		# 等待循环空转、瞬间误判“未连接”，按键被丢弃）。优先用 infoscreen 那份 busybox，
+		# 回落为整秒 + 截止时间（都是最多等 8 秒）。
+		local sleeper deadline
+		if [ -x /opt/e5/bin/busybox ]; then
+			sleeper="/opt/e5/bin/busybox sleep 0.1"
+		else
+			sleeper="sleep 1"
+		fi
+		deadline=$(( $(date +%s) + 8 ))
+		while [ ! -e "$READY" ] && [ "$(date +%s)" -lt "$deadline" ]; do
+			$sleeper
 		done
 	fi
 	[ -e "$READY" ] || { echo "micyou: 未连接，无法发送远程按键" >&2; exit 3; }
