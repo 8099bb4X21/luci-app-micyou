@@ -319,6 +319,7 @@ return view.extend({
 				if (panels[key]) panels[key].className = 'micyou-panel' + (key == name ? ' active' : '');
 				if (tabBtns[key]) tabBtns[key].className = (key == name ? 'active' : '');
 			});
+			if (name == 'conn') setTimeout(alignGainRow, 30);
 		}
 		var tabs = E('div', { 'class': 'micyou-tabs' },
 			[ [ 'conn', '连接设置' ], [ 'keys', '按键功能' ], [ 'adv', '高级自定义' ] ].map(function(def) {
@@ -333,7 +334,6 @@ return view.extend({
 		var hostInput = makeInput(main.server || '', '192.168.1.100', function(v) { setEdit('__server', v); }, 14);
 		var portInput = makeInput(main.port || '8554', '8554', function(v) { setEdit('__port', v); }, 5);
 		var rowHost = makeRow('服务器地址 : 控制端口', [ hostInput, E('span', {}, ':'), portInput ]);
-		rowHost.classList.add('micyou-row-fill');
 		connCard.appendChild(rowHost);
 
 		var devInput = makeInput(main.device || 'hw:0,0', 'hw:0,0', function(v) { setEdit('__device', v); }, 12);
@@ -344,8 +344,24 @@ return view.extend({
 			: (GAIN.step != null ? String(GAIN.step) : '');
 		var gainSelect = makeSelect(gainOpts, gainValue, function(v) { setEdit('__gain', v); });
 		var rowDev = makeRow('采集设备 · 采集增益', [ devInput, gainSelect ]);
-		rowDev.classList.add('micyou-row-fill');
 		connCard.appendChild(rowDev);
+		// 让“采集设备 / 采集增益”两个控件的总宽 = 上一行控件总宽，并两者平分
+		function alignGainRow() {
+			if (!rowHost || !rowDev) return;
+			var a = rowHost.querySelector('.micyou-row-controls');
+			var b = rowDev.querySelector('.micyou-row-controls');
+			if (!a || !b) return;
+			var total = a.getBoundingClientRect().width;
+			if (!total) return;
+			b.style.width = Math.round(total) + 'px';
+			b.querySelectorAll('input, select').forEach(function(el) {
+				el.style.flex = '1 1 0';
+				el.style.width = 'auto';
+				el.style.minWidth = '0';
+			});
+		}
+		setTimeout(alignGainRow, 50);
+		window.addEventListener('resize', alignGainRow);
 
 		var schedConnect = E('input', { 'type': 'time', 'class': 'cbi-input-text', 'style': 'width:8em' });
 		schedConnect.value = main.sched_connect || '';

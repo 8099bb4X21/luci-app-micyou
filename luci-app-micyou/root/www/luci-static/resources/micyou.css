@@ -168,20 +168,3 @@
 	color: #fff !important;
 	font-weight: 600;
 }
-
-/* 连接设置前两行等宽：控件区固定宽度，输入框自适应 */
-.micyou-row-fill .micyou-row-controls {
-	width: 24em;
-	max-width: 100%;
-}
-
-.micyou-row-fill .micyou-row-controls > input {
-	flex: 1 1 auto;
-	width: auto !important;
-	min-width: 6em;
-}
-
-.micyou-row-fill .micyou-row-controls > select {
-	flex: 0 0 10em;
-	width: 10em;
-}
