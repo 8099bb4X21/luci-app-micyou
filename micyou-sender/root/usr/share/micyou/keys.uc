@@ -73,7 +73,7 @@ return [
 	  keys: ['#'], keyCodes: [], codes: [],
 	  orig_zh: '无（仅供插件/拨号等使用）', orig_en: 'None (plugins/dialers only)',
 	  orig_short_zh: '无', orig_short_en: 'None' },
-	{ id: 'side', zh: '侧键（F1/热点）', en: 'Side key (F1)', code: 59,
+	{ id: 'side', zh: '侧键', en: 'Side key', code: 59,
 	  keys: ['F1'], keyCodes: [112], codes: [],
 	  orig_zh: '打开“热点”页', orig_en: 'Open the Hotspot page',
 	  orig_short_zh: '打开热点页', orig_short_en: 'Hotspot page' },

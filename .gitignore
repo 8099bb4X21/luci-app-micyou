@@ -1,0 +1,22 @@
+# 本地专属：上游 e5-infoscreen 克隆（自带 .git，不随本项目发布）
+/E5infoscreen/
+
+# 内部文档：方案、设计、验证记录、改动清单、对上游的补丁
+/docs/
+
+# 旧推送流程留下的仓库克隆（历史已在 GitHub）
+/gh/
+
+# 测试中间产物与仅本机可用的工具
+/test/anchor*/
+/test/device/
+/test/pc/
+/test/README.md
+/test/test-keys-consistency.cjs
+
+# 本机维护脚本（未发布）
+/tools/fix-line-endings.py
+
+# Python 缓存
+__pycache__/
+*.pyc
