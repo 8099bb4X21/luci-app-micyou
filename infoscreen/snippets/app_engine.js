@@ -5,8 +5,9 @@
 //   * 只消费“确实配了动作”的键（未配置 = 完全保持原有功能）；
 //   * 配了长按的键：按下先吞掉；长按阈值到 → 长按动作；提前抬起 → 单击动作；
 //   * 调用点在“黑屏只唤醒”之前：黑屏/锁屏下也直接生效，且不点亮屏幕。
-// 动作：connect / disconnect / toggle / connect_if_down（若未连接则自动连接）。
-const MICYOU_REAL = { connect: 1, disconnect: 1, toggle: 1, connect_if_down: 1 };
+// 动作：connect / disconnect / toggle / connect_if_down（若未连接则自动连接）；
+//       power_menu（本机弹出电源菜单，不经过发送端）。
+const MICYOU_REAL = { connect: 1, disconnect: 1, toggle: 1, connect_if_down: 1, power_menu: 1 };
 
 // 一个动作算不算“接管”：麦克风动作，或“原有功能”（fn:<id>，见 funcs.uc）
 function micyouWanted(action) {
@@ -45,9 +46,21 @@ function micyouMatch(e) {
 	return null;
 }
 
+// 锁屏拦截器（mobile.js）用：这个键绑了“打开电源菜单”就放行，锁屏下也能弹菜单。
+// 只放行这一个本机动作；麦克风连接键仍按锁屏策略被拦住。
+window.micyouPowerKey = function (e) {
+	const hit = micyouMatch(e);
+	return !!hit && (hit.bind.single == 'power_menu' || hit.bind.long == 'power_menu');
+};
+
 function micyouAct(bind, action) {
 	if (!micyouWanted(action)) return;
 	if (bind.vib) post('vibrate', { ms: 60 });      // 黑屏下也能感知
+	if (action == 'power_menu') {                   // 本机动作：弹出电源菜单
+		if (window.T551MPower?.open) window.T551MPower.open();
+		else toast(lang == 'en' ? 'Power menu unavailable' : '无法打开电源菜单');
+		return;
+	}
 	if (`${action}`.startsWith('fn:')) {            // 原有功能：把某个页面/音量/返回等挪到本键
 		micyouOriginal(`${action}`.slice(3));
 		return;

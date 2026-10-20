@@ -5,7 +5,9 @@ const MICYOU_KEYS = '/usr/share/micyou/keys.uc';
 
 function micyou_keys() {
 	let f = loadfile(MICYOU_KEYS, { raw_mode: true });
-	return f ? f() : [];
+	let keys = f ? f() : [];
+	// custom:false = 只作档案保留（电话键/电源键/其他机型专属键）：不显示、不参与匹配
+	return filter(keys, k => k.custom !== false);
 }
 
 // “原有功能”总表（任何按键都可选用，fn:<id>）

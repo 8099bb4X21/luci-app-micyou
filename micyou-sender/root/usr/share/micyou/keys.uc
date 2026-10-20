@@ -16,6 +16,8 @@
 //   keyCodes   KeyboardEvent.keyCode 匹配集合
 //   codes      KeyboardEvent.code 匹配集合（区分左右修饰键时用，如右 Alt）
 //   orig_zh/en **原有功能**（不改配置时这个键本来干什么，界面照此显示）
+//   custom     false = 只作档案保留：不在「按键功能」页显示、不参与按键匹配、保存时忽略
+//              （电话键被拨号逻辑接管；电源键固定为熄屏/亮屏 + 长按电源菜单；其余为其他机型专属键）
 //
 // 顺序即界面顺序：数字键/星/井/侧键/音量键 在前（用户常改的），其余在后。
 // 以后加键盘按键：在本表加一条即可——界面选择项、按键匹配全部由本表驱动。
@@ -87,7 +89,7 @@ return [
 	  keys: ['ContextMenu', 'Menu'], keyCodes: [93], codes: [],
 	  orig_zh: '打开应用列表', orig_en: 'Open the app list',
 	  orig_short_zh: '打开应用列表', orig_short_en: 'App list' },
-	{ id: 'phone', zh: '电话键', en: 'Call', code: 169,
+	{ id: 'phone', zh: '电话键', en: 'Call', code: 169, custom: false,
 	  keys: ['F13', 'Phone', 'PickupPhone', 'Call'], keyCodes: [124], codes: [],
 	  orig_zh: '无（电话键由电话应用自己处理）', orig_en: 'None (handled inside the phone app)',
 	  orig_short_zh: '无（电话应用内）', orig_short_en: 'None (inside the phone app)' },
@@ -115,19 +117,19 @@ return [
 	  keys: ['ArrowRight'], keyCodes: [39], codes: [],
 	  orig_zh: '下一页', orig_en: 'Next page',
 	  orig_short_zh: '下一页', orig_short_en: 'Next page' },
-	{ id: 'power', zh: '电源键', en: 'Power', code: 116,
+	{ id: 'power', zh: '电源键', en: 'Power', code: 116, custom: false,
 	  keys: ['Power', 'PowerOff', 'Standby', 'Sleep'], keyCodes: [409], codes: [],
 	  orig_zh: '息屏/亮屏（长按 1.2 秒开电源菜单）', orig_en: 'Blank/wake (hold 1.2 s: power menu)',
 	  orig_short_zh: '息屏 / 亮屏', orig_short_en: 'Blank / wake' },
-	{ id: 'next', zh: '下一个键（其他机型）', en: 'Next (other models)', code: 407,
+	{ id: 'next', zh: '下一个键（其他机型）', en: 'Next (other models)', code: 407, custom: false,
 	  keys: ['Next', 'BrowserForward', 'GoForward'], keyCodes: [], codes: [],
 	  orig_zh: '无（E5 机身无此键）', orig_en: 'None (not on the E5)',
 	  orig_short_zh: '无（其他机型）', orig_short_en: 'None (other models)' },
-	{ id: 'pickup', zh: '接听键（其他机型）', en: 'Pick up (other models)', code: 445,
+	{ id: 'pickup', zh: '接听键（其他机型）', en: 'Pick up (other models)', code: 445, custom: false,
 	  keys: ['PickupPhone'], keyCodes: [], codes: [],
 	  orig_zh: '无（E5 机身无此键）', orig_en: 'None (not on the E5)',
 	  orig_short_zh: '无（其他机型）', orig_short_en: 'None (other models)' },
-	{ id: 'hangup', zh: '挂断键（其他机型）', en: 'Hang up (other models)', code: 446,
+	{ id: 'hangup', zh: '挂断键（其他机型）', en: 'Hang up (other models)', code: 446, custom: false,
 	  keys: ['HangupPhone'], keyCodes: [], codes: [],
 	  orig_zh: '无（E5 机身无此键）', orig_en: 'None (not on the E5)',
 	  orig_short_zh: '无（其他机型）', orig_short_en: 'None (other models)' }

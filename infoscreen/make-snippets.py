@@ -42,14 +42,21 @@ SPECS = [
     # sdk/e5.js：抬起转发
     ('sdk_keyup.js', 'www/sdk/e5.js', 'AFTER',
      "\t\tif (taken) e.preventDefault();\n\t}, true);", "\twindow.addEventListener('message', (e) => {"),
+    # mobile.js：锁屏按键拦截器放行“打开电源菜单”的键
+    ('mobile_lock_allow.js', 'www/mobile.js', 'BEFORE',
+     '        // 电源菜单快捷键：锁屏下也要能弹出（见 app.js 的 micyou 动作 power_menu）',
+     "        if (['power','volup','voldown'].includes(kind)) return;"),
+    # power-menu.js：黑屏时它默认吞掉除音量外的所有键，快捷键要放行给 app.js 处理
+    ('power_menu_hook.js', 'www/power-menu.js', 'AFTER',
+     '    function key(event) {', '        if (!root) return;'),
 ]
 
 
 def main() -> int:
-    base = pathlib.Path(sys.argv[1] if len(sys.argv) > 1
-                        else r'E:\OpenCode\test\Micyou_openwrt\E5infoscreen\root\usr\share\e5-infoscreen')
-    out = pathlib.Path(sys.argv[2] if len(sys.argv) > 2
-                       else r'E:\OpenCode\test\Micyou_openwrt\tools\snippets')
+    root = pathlib.Path(__file__).resolve().parent.parent
+    base = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 \
+        else root / 'E5infoscreen/root/usr/share/e5-infoscreen'
+    out = pathlib.Path(sys.argv[2]) if len(sys.argv) > 2 else root / 'infoscreen/snippets'
     out.mkdir(parents=True, exist_ok=True)
     for name, rel, mode, start, end in SPECS:
         text = (base / rel).read_text(encoding='utf-8')

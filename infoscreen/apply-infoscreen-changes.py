@@ -48,6 +48,76 @@ RULES = [
     ('www/sdk/e5.js', 'after',
      TAB + TAB + "if (taken) e.preventDefault();\n" + TAB + "}, true);",
      'sdk_keyup.js', "e5: 'keyup'"),
+    # 锁屏拦截器放行“打开电源菜单”的键（该键由 app.js 的 micyou 动作打开菜单）
+    ('www/mobile.js', 'before',
+     '        ' + "if (['power','volup','voldown'].includes(kind)) return;",
+     'mobile_lock_allow.js', 'micyouPowerKey'),
+    # 导出 open()，供 micyou 的 power_menu 动作调用（否则只能在外部模拟长按）
+    ('www/power-menu.js', 'replace',
+     '    return {boot, attach, isOpen, close};',
+     '    // open 也导出：按键功能页的“打开电源菜单”动作（app.js 的 micyou 引擎）要调它\n'
+     + '    return {boot, attach, isOpen, close, open};',
+     'isOpen, close, open}'),
+    # 黑屏时 power-menu.js 会吞掉除音量外的所有键，快捷键要放行给 app.js 的 micyou 动作
+    ('www/power-menu.js', 'after',
+     '    function key(event) {',
+     'power_menu_hook.js', 'micyouPowerKey?.(event)'),
+    # 升级规则：设备上已有“单行放行”版本时，换成“黑屏直接 open()”的版本
+    ('www/power-menu.js', 'replace',
+     '        if (window.micyouPowerKey?.(event)) return;   // 电源菜单快捷键：交给 app.js 的 micyou 动作',
+     '        // 电源菜单快捷键：黑屏时新版 app.js 会吞掉除电源键外的所有键，这里直接开菜单；\n'
+     + '        // 其余状态交给 app.js 的 micyou 动作处理（保留“单击/长按”配置）\n'
+     + '        if (window.micyouPowerKey?.(event)) {\n'
+     + '            if (!blank) return;\n'
+     + '            event.preventDefault(); event.stopImmediatePropagation();\n'
+     + "            if (event.type === 'keydown' && !event.repeat) open();\n"
+     + '            return;\n'
+     + '        }',
+     'if (!blank) return;'),
+    # ---- 升级规则：设备上已有“旧版引擎片段”时（上面那条会因标记跳过），把新增内容补进去。
+    #      全新安装时上面那条已插入新版引擎，标记存在 → 这两条自动跳过。
+    #      用途：加入 power_menu 动作时不要求重装/重刷。
+    ('www/app.js', 'replace',
+     '// 动作：connect / disconnect / toggle / connect_if_down（若未连接则自动连接）。\n'
+     + 'const MICYOU_REAL = { connect: 1, disconnect: 1, toggle: 1, connect_if_down: 1 };',
+     '// 动作：connect / disconnect / toggle / connect_if_down（若未连接则自动连接）；\n'
+     + '//       power_menu（本机弹出电源菜单，不经过发送端）。\n'
+     + 'const MICYOU_REAL = { connect: 1, disconnect: 1, toggle: 1, connect_if_down: 1, power_menu: 1 };',
+     'power_menu: 1'),
+    ('www/app.js', 'replace',
+     'function micyouAct(bind, action) {\n'
+     + TAB + 'if (!micyouWanted(action)) return;\n'
+     + TAB + "if (bind.vib) post('vibrate', { ms: 60 });      // 黑屏下也能感知\n"
+     + TAB + "if (`${action}`.startsWith('fn:')) {            // 原有功能：把某个页面/音量/返回等挪到本键",
+     '// 锁屏拦截器（mobile.js）用：这个键绑了“打开电源菜单”就放行，锁屏下也能弹菜单。\n'
+     + '// 只放行这一个本机动作；麦克风连接键仍按锁屏策略被拦住。\n'
+     + 'window.micyouPowerKey = function (e) {\n'
+     + TAB + 'const hit = micyouMatch(e);\n'
+     + TAB + "return !!hit && (hit.bind.single == 'power_menu' || hit.bind.long == 'power_menu');\n"
+     + '};\n\n'
+     + 'function micyouAct(bind, action) {\n'
+     + TAB + 'if (!micyouWanted(action)) return;\n'
+     + TAB + "if (bind.vib) post('vibrate', { ms: 60 });      // 黑屏下也能感知\n"
+     + TAB + "if (action == 'power_menu') {                   // 本机动作：弹出电源菜单\n"
+     + TAB + TAB + 'if (window.T551MPower?.open) window.T551MPower.open();\n'
+     + TAB + TAB + "else toast(lang == 'en' ? 'Power menu unavailable' : '无法打开电源菜单');\n"
+     + TAB + TAB + 'return;\n'
+     + TAB + '}\n'
+     + TAB + "if (`${action}`.startsWith('fn:')) {            // 原有功能：把某个页面/音量/返回等挪到本键",
+     'window.micyouPowerKey'),
+    # 升级规则：屏幕端 /api/micyou 也要过滤 custom:false（旧版 api_helpers 已打时补上）
+    ('api.uc', 'replace',
+     'function micyou_keys() {\n'
+     + TAB + 'let f = loadfile(MICYOU_KEYS, { raw_mode: true });\n'
+     + TAB + 'return f ? f() : [];\n'
+     + '}',
+     'function micyou_keys() {\n'
+     + TAB + 'let f = loadfile(MICYOU_KEYS, { raw_mode: true });\n'
+     + TAB + 'let keys = f ? f() : [];\n'
+     + TAB + '// custom:false = 只作档案保留（电话键/电源键/其他机型专属键）：不显示、不参与匹配\n'
+     + TAB + 'return filter(keys, k => k.custom !== false);\n'
+     + '}',
+     'k.custom !== false'),
 ]
 
 

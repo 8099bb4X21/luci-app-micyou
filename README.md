@@ -5,7 +5,7 @@
 **本仓库不是一个能直接装到任意路由器上的 LuCI 插件/apk。**
 
 它只适用于 **Rongyue E5（Unisoc UMS9621）上运行 OpenWrt（[e5-linux](https://github.com/Enceka/e5-linux) 的 `openwrt/` 构建）** 的设备，
-并且设备上必须**已经装好**：`python3-light`、**信息屏 e5-infoscreen**（本仓库要用“锚点替换”把改动打进它的 4 个文件）、
+并且设备上必须**已经装好**：`python3-light`、**信息屏 e5-infoscreen**（本仓库要用“锚点替换”把改动打进它的 6 个文件）、
 `uhttpd-mod-ucode` 与 LuCI。
 
 只单独安装 `luci-app-micyou.apk` **不会有可用的东西**：既不会出现能工作的界面，也不会把麦克风推流起来。
@@ -50,10 +50,10 @@ PC 端还要有 MicYou 服务端；要注入电脑按键则必须用 **MicYou �
 
 ```sh
 ./tools/deploy.sh <设备IP>                 # 例如 192.168.1.172，按你自己的网络填
-./test/live-check.sh <设备IP>              # 自检 23 项；全绿即安装成功
+./test/live-check.sh <设备IP>              # 自检 24 项；全绿即安装成功
 ```
 
-`deploy.sh` 做四件事：装发送端包 → 装 LuCI 界面包 → **用“锚点替换”把改动打进 infoscreen 的 4 个文件**
+`deploy.sh` 做四件事：装发送端包 → 装 LuCI 界面包 → **用“锚点替换”把改动打进 infoscreen 的 6 个文件**
 （不覆盖整文件，见 `infoscreen/README.md`）→ 去 CR、迁移旧配置、启用/重启服务。
 **已有的 `/etc/config/micyou` 不会被覆盖。**
 
@@ -73,7 +73,7 @@ cd /tmp && sh tools/deploy-on-device.sh
 
 * `micyou-sender/` 与 `luci-app-micyou/` 都是**标准 OpenWrt 包**（各自的 `Makefile` + `root/`），
   放进构建树的 `package/` 后 `make menuconfig` 选中即可（产出 apk）。
-* infoscreen 的 4 个文件改动**不能**做成独立包（会与 `e5-infoscreen` 包文件冲突）——
+* infoscreen 的 6 个文件改动**不能**做成独立包（会与 `e5-infoscreen` 包文件冲突）——
   正确做法是构建时用锚点补丁打进该包（`infoscreen/apply-infoscreen-changes.py`）。
 
 ---
@@ -84,7 +84,7 @@ cd /tmp && sh tools/deploy-on-device.sh
 |---|---|
 | 连接 / 断开 | 按已配置功能的实体键；LuCI「服务 → 无线麦克风」的「连接/断开服务器」；屏幕「设置 → 无线麦克风」；或命令行 `micyou-ctl connect\|disconnect\|toggle` |
 | 搜索服务器 | 屏幕「设置 → 无线麦克风 → 搜索服务器」（扫描同网段里**应答 MicYou 握手**的设备并列出，选中即写入地址；253 个地址约 3 秒） |
-| 配置按键 | LuCI「服务 → 无线麦克风 → 按键功能」：每键两行（单击/长按 + 无/自定义电脑按键），选了后者展开第三行组合键（左/右 Ctrl、Alt、Win、**回车键**、空格、**退格键**），右侧可勾「若未连接自动连接」；「高级自定义」里设震动总开关、统一长按阈值（默认 500ms） |
+| 配置按键 | LuCI「服务 → 无线麦克风 → 按键功能」：每键两行（单击/长按 + 无/自定义电脑按键），选了后者展开第三行组合键（左/右 Ctrl、Alt、Win、**回车键**、空格、**退格键**），右侧可勾「若未连接自动连接」；「高级自定义」里设震动总开关、统一长按阈值（默认 500ms）。单击/长按下拉里的 **本机 → 打开电源菜单** 可让任意键弹出电源菜单（解锁/锁屏/息屏都生效） |
 | 定时连接 / 断开 | LuCI「连接设置」里的两个时间框（HH:MM，留空不启用；每天各执行一次） |
 | 采集增益 | LuCI 同行「采集设备 · 采集增益」：0–21dB（8 档 × 3dB，只能选有效档），连接/开机自动应用 |
 | 备份 / 恢复 | 页面下方：保存并应用 / 放弃修改并刷新 / 恢复默认值 / 导出配置 / 导入配置 |
@@ -99,13 +99,13 @@ cd /tmp && sh tools/deploy-on-device.sh
 ```
 micyou-sender/     设备服务包：发送端 + micyou-ctl + 键表/原功能表 + rpcd 后端 + 定时服务 + UCI 默认值
 luci-app-micyou/    LuCI 界面包：menu / acl / 自定义视图 / CSS
-infoscreen/         信息屏适配：锚点替换器 + 代码片段（打进 e5-infoscreen 的 4 个文件）
+infoscreen/         信息屏适配：锚点替换器 + 代码片段（打进 e5-infoscreen 的 6 个文件）
   apply-infoscreen-changes.py   按上游锚点插入我们的代码；已打过会跳过；锚点找不到会明确报错
   make-snippets.py              从改好的文件里重新抽取片段（维护用）
   snippets/                     要插入的代码片段
 tools/deploy.sh           PC 端一键部署（经 SSH）
 tools/deploy-on-device.sh 设备端安装（拷到设备后跑）
-test/live-check.sh        一键自检（23 项，红/绿）
+test/live-check.sh        一键自检（24 项，红/绿）
 test/measure-resources.py 资源占用采样（CPU%/内存/电池电流）
 ```
 
@@ -114,7 +114,7 @@ test/measure-resources.py 资源占用采样（CPU%/内存/电池电流）
 ## 已知限制
 
 * **PC 端 remote-key 注入需要 MicYou 的 fork 版本 + WinUHID**；上游版本只会忽略按键消息。
-* infoscreen 的改动用**锚点替换**：上游若大改那 4 个文件的结构，锚点可能失效——
+* infoscreen 的改动用**锚点替换**：上游若大改那 6 个文件的结构，锚点可能失效——
   安装器会明确报 FAIL（而不是改坏文件），此时需要更新 `infoscreen/snippets/` 与锚点。
 * 手动用 `micyou-ctl send-key` 发按键时**务必配对 down/up**（只发 down 会让 PC 端卡键）；
   卡住时执行 `micyou-ctl release-all` 一键松开。

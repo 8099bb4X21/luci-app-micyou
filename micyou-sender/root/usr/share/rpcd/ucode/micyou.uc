@@ -2,7 +2,7 @@
 //
 //   status          { connected, server, port, device, autostart, bindings }
 //                   bindings: { <键id>: { single, long, ms, vib } }
-//   keys            { keys: [ ... ] }   权威键表（/usr/share/micyou/keys.uc，含原有功能）
+//   keys            { keys: [ ... ] }   可自定义键表（/usr/share/micyou/keys.uc，custom:false 的条目除外）
 //   connect         { ok, message, ...status }
 //   disconnect      { ok, message, ...status }
 //   set_autostart   { on } -> { ok, message, ...status }
@@ -34,6 +34,12 @@ function key_list() {
 	return f ? f() : [];
 }
 
+// 可自定义的键：keys.uc 里 custom:false 的条目只作档案保留——
+// 页面不显示、不参与按键匹配（bindings 不含它们）、保存时忽略。
+function custom_keys() {
+	return filter(key_list(), k => k.custom !== false);
+}
+
 // “原有功能”总表（任何按键都可选用，见 funcs.uc）
 function func_list() {
 	let f = loadfile(FUNCS, { raw_mode: true });
@@ -46,7 +52,7 @@ function bindings() {
 	let out = {};
 	let master_vib = uci_get('main.vibrate') != '0';
 	let global_ms = +(uci_get('main.ms') || 0);
-	for (let k in key_list()) {
+	for (let k in custom_keys()) {
 		let id = k.id;
 		out[id] = {
 			single: uci_get(`keys.${id}_single`) || 'original',
@@ -103,7 +109,7 @@ return {
 		},
 		keys: {
 			call: function() {
-				return { keys: key_list(), funcs: func_list() };
+				return { keys: custom_keys(), funcs: func_list() };
 			}
 		},
 		connect: {
@@ -166,9 +172,17 @@ return {
 					if (match(name, /^[a-z0-9_]+$/))
 						push(cmds, `uci -q set micyou.main.${name}=${uci_quote(main[name])}`);
 				let keys = req.args?.keys ?? {};
-				for (let name in keys)
-					if (match(name, /^[a-z0-9_]+$/))
-						push(cmds, `uci -q set micyou.keys.${name}=${uci_quote(keys[name])}`);
+				let ids = {};
+				for (let k in custom_keys())
+					ids[k.id] = true;
+				for (let name in keys) {
+					if (!match(name, /^[a-z0-9_]+$/))
+						continue;
+					// 不可自定义/未知键：忽略（旧配置或旧导出里可能还带着）
+					if (!ids[split(name, '_')[0]])
+						continue;
+					push(cmds, `uci -q set micyou.keys.${name}=${uci_quote(keys[name])}`);
+				}
 				if (!length(cmds))
 					return { ok: true, message: 'nothing to save' };
 				push(cmds, 'uci -q commit micyou');

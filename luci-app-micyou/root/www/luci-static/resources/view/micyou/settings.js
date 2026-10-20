@@ -28,6 +28,11 @@ var MIC_ACTIONS = [
 	[ 'connect_if_down', '若未连接则自动连接' ]
 ];
 
+// 只在本机生效的动作（不经过发送端/网络）
+var LOCAL_ACTIONS = [
+	[ 'power_menu', '打开电源菜单' ]
+];
+
 // 自定义电脑按键的可选键（Windows VK 码，与 fork 的协议一致）
 var VK_CHOICES = [
 	[ '', '无' ], [ '162', '左Ctrl' ], [ '163', '右Ctrl' ], [ '164', '左Alt' ], [ '165', '右Alt' ],
@@ -118,6 +123,8 @@ return view.extend({
 		KEY_MS = [];
 
 		var actionOptions = [ [ 'group', '麦克风' ] ].concat(MIC_ACTIONS).concat([
+			[ 'group', '本机' ]
+		]).concat(LOCAL_ACTIONS).concat([
 			[ 'group', '原有功能' ],
 			[ 'original', '原功能' ]
 		]).concat(FUNCS.map(function(f) { return [ 'fn:' + f.id, f.zh ]; }));
@@ -390,7 +397,8 @@ return view.extend({
 				'点“＋ 电脑按键”可把它变成 PC 上的按键（PC 端需运行 ',
 				E('a', { 'href': 'https://github.com/8099bb4X21/MicYou', 'target': '_blank', 'rel': 'noopener' },
 					'MicYou的fork版本'),
-				' 并装好 WinUHID；按住不松 = PC 上一直按着，适合对讲键）。只配置过的键才会被接管，其余保持原样。'
+				' 并装好 WinUHID；按住不松 = PC 上一直按着，适合对讲键）。只配置过的键才会被接管，其余保持原样。' +
+				'电话键、电源键不可自定义（分别由拨号逻辑和熄屏/亮屏+长按电源菜单占用），其他机型专属键不显示。'
 			])
 		]);
 		var filterInput = E('input', { 'class': 'cbi-input-text', 'type': 'text',

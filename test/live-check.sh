@@ -20,7 +20,7 @@ no() { FAIL=$((FAIL + 1)); echo "  [FAIL] $1"; }
 # run <名字> <ssh 命令> <期望包含的标记>
 run() {
 	out=$($S "$2" 2>&1)
-	if echo "$out" | grep -q "$3"; then ok "$1"; else no "$1（期望含 $3，实得：$(echo "$out" | head -2 | tr '\n' ' ')）"; fi
+	if echo "$out" | grep -qx -- "$3"; then ok "$1"; else no "$1（期望整行为 $3，实得：$(echo "$out" | head -2 | tr '\n' ' ')）"; fi
 }
 
 echo "== 1. 脚本语法（设备上）=="
@@ -34,8 +34,16 @@ run "app.js 引擎" 'grep -q "function micyouKeyDown" /usr/share/e5-infoscreen/w
 run "sdk keyup 转发" 'grep -q "e5: .keyup." /usr/share/e5-infoscreen/www/sdk/e5.js && echo A' A
 run "LuCI 视图" 'grep -q keysOf /www/luci-static/resources/view/micyou/settings.js && grep -q callReset /www/luci-static/resources/view/micyou/settings.js && grep -q callSave /www/luci-static/resources/view/micyou/settings.js && grep -q "sched_connect" /www/luci-static/resources/view/micyou/settings.js && grep -q "统一长按阈值" /www/luci-static/resources/view/micyou/settings.js && echo A' A
 run "LuCI CSS" 'grep -q micyou-topbar /www/luci-static/resources/micyou.css && grep -q micyou-tabs /www/luci-static/resources/micyou.css && grep -q micyou-notice /www/luci-static/resources/micyou.css && echo A' A
-run "键表 27 条" 'ucode -e "print(length(loadfile(\"/usr/share/micyou/keys.uc\",{raw_mode:true})()))"' 27
+run "键表档案 27 条" 'ucode -e "print(length(loadfile(\"/usr/share/micyou/keys.uc\",{raw_mode:true})()))"' 27
 run "原功能表 19 条" 'ucode -e "print(length(loadfile(\"/usr/share/micyou/funcs.uc\",{raw_mode:true})()))"' 19
+run "不可自定义键已排除" 'ubus call micyou keys | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+ids={k[\"id\"] for k in d[\"keys\"]}
+bad=ids & {\"phone\",\"power\",\"next\",\"pickup\",\"hangup\"}
+assert not bad, bad
+assert len(ids)==22
+print(\"A\")"' A
 
 echo "== 3. ubus 接口 =="
 run "方法齐全" 'for m in status keys config save reset gain set_gain scan connect disconnect set_autostart; do ubus -v list micyou | grep -q "\"$m\"" || { echo "missing $m"; exit 1; }; done; echo METHODS_OK' METHODS_OK
@@ -43,13 +51,13 @@ run "status 形状" 'ubus call micyou status | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
 assert isinstance(d[\"connected\"],bool) and \"server\" in d and \"bindings\" in d
-assert len(d[\"bindings\"])==27
+assert len(d[\"bindings\"])==22
 assert set(d[\"bindings\"][\"digit1\"])=={\"single\",\"long\",\"mode\",\"chord\",\"autoconnect\",\"ms\",\"vib\"}
 print(\"STATUS_OK\")"' STATUS_OK
 run "keys 形状" 'ubus call micyou keys | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
-assert len(d[\"keys\"])==27 and len(d[\"funcs\"])==19
+assert len(d[\"keys\"])==22 and len(d[\"funcs\"])==19
 assert d[\"funcs\"][0][\"id\"]==\"page1\" and d[\"keys\"][0][\"id\"]==\"digit1\"
 assert all(\"orig_short_zh\" in k for k in d[\"keys\"])
 print(\"KEYS_OK\")"' KEYS_OK
@@ -64,7 +72,7 @@ echo "== 4. 屏幕接口 =="
 run "/api/micyou" 'wget -qO- http://127.0.0.1:8088/api/micyou | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
-assert len(d[\"keys\"])==27 and len(d[\"funcs\"])==19 and len(d[\"bindings\"])==27
+assert len(d[\"keys\"])==22 and len(d[\"funcs\"])==19 and len(d[\"bindings\"])==22
 print(\"A\")"' A
 run "/api/settings 列表含 micyou" 'wget -qO- http://127.0.0.1:8088/api/settings | python3 -c "
 import json,sys

@@ -74,7 +74,7 @@ $SSH '
 
 echo
 echo "完成。核对："
-echo "  ./test/live-check.sh $HOST            # 一键自检（23 项）"
+echo "  ./test/live-check.sh $HOST            # 一键自检（24 项）"
 echo "  ./tools/check-device.sh $HOST         # 设备文件与本地逐文件校验"
 echo "  网页 http://$HOST/ → 服务 → 无线麦克风"
 echo "  屏幕 设置 → 无线麦克风"
